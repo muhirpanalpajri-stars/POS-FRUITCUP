@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrinkStation Ultra POS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --accent: #6366f1;
+            --success: #10b981;
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 15px; }
+
+        .app-shell { max-width: 1200px; margin: 0 auto; }
+
+        /* Navigasi Tab */
+        .nav-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            flex-wrap: wrap; 
+            gap: 15px;
+        }
+        .nav-tabs { 
+            display: flex; 
+            background: #e5e7eb; 
+            padding: 5px; 
+            border-radius: 12px; 
+            gap: 5px; 
+        }
+        .tab-btn { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            color: var(--text-light); 
+            transition: 0.3s; 
+            background: transparent; 
+            font-size: 0.9rem;
+        }
+        .tab-btn.active { 
+            background: var(--card); 
+            color: var(--accent); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        }
+
+        /* Kartu Statistik Atas */
+        .stats-row { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin-bottom: 25px; 
+        }
+        .stat-card { 
+            background: var(--card); 
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03); 
+        }
+        .stat-card i { color: var(--accent); margin-bottom: 10px; display: block; }
+        .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 5px; }
+
+        /* Layout Grid Responsif (Kasir) */
+        .content-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 25px; 
+        }
+        @media (min-width: 992px) {
+            .content-grid { grid-template-columns: 380px 1fr; }
+        }
+
+        .glass-card { 
+            background: var(--card); 
+            border-radius: 24px; 
+            padding: 25px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); 
+        }
+        .card-head { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        /* Item Menu & Qty */
+        .item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 15px; 
+            background: #f9fafb; 
+            border-radius: 16px; 
+            margin-bottom: 10px; 
+        }
+        .qty-box { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            background: white; 
+            padding: 4px; 
+            border-radius: 10px; 
+            border: 1px solid #e5e7eb; 
+        }
+        .ctrl-btn { 
+            width: 28px; 
+            height: 28px; 
+            border-radius: 6px; 
+            border: none; 
+            cursor: pointer; 
+        }
+
+        /* Table Responsif */
+        .table-res { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 400px; }
+        th { text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-light); border-bottom: 1px solid #f3f4f6; }
+        td { padding: 15px 12px; border-bottom: 1px solid #f9fafb; font-size: 0.9rem; }
+
+        .btn-submit { 
+            width: 100%; 
+            padding: 15px; 
+            border-radius: 14px; 
+            border: none; 
+            background: var(--accent); 
+            color: white; 
+            font-weight: 700; 
+            cursor: pointer; 
+            margin-top: 15px; 
+        }
+
+        /* Layout Laporan Responsif */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        @media (min-width: 992px) {
+            .report-grid { grid-template-columns: 1fr 400px; }
+        }
+
+        input[type="date"], input[type="month"] { 
+            width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 15px; 
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="app-shell">
+    <div class="nav-header">
+        <h1 style="font-weight: 800;"><i class="fas fa-bolt" style="color:var(--accent)"></i> DRINK POS</h1>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('kasir')">Kasir</button>
+            <button class="tab-btn" onclick="switchTab('laporan')">Laporan</button>
+        </div>
+    </div>
+
+    <div id="tab-kasir">
+        <div class="stats-row">
+            <div class="stat-card">
+                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Hari Ini</div>
+                <div class="stat-val" id="day-omzet">Rp 0</div>
+            </div>
+            <div class="stat-card">
+                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Hari Ini</div>
+                <div class="stat-val" id="day-profit" style="color:var(--success)">Rp 0</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="glass-card">
+                <div class="card-head">Input Pesanan</div>
+                <input type="date" id="inputDate">
+                <div id="menuContainer"></div>
+                <button class="btn-submit" onclick="simpanData()">Simpan Transaksi</button>
+            </div>
+            
+            <div class="glass-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <div class="card-head" style="margin:0">Riwayat</div>
+                    <input type="date" id="filterDate" onchange="renderKasir()" style="width:auto; margin:0">
+                </div>
+                <div class="table-res">
+                    <table>
+                        <thead><tr><th>Jam</th><th>Menu</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+                        <tbody id="tableKasir"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-laporan" class="hidden">
+        <div class="report-grid">
+            <div class="glass-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                    <div class="card-head" style="margin:0">Rekap Bulanan</div>
+                    <input type="month" id="filterMonth" onchange="renderLaporan()" style="width:auto; margin:0">
+                </div>
+                <div class="table-res">
+                    <table>
+                        <thead><tr><th>Tanggal</th><th>Cup</th><th>Omzet</th><th>Profit</th></tr></thead>
+                        <tbody id="tableLaporan"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="card-head">Proporsi Menu</div>
+                <div style="height:300px; width:100%"><canvas id="donutChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const MENU = {
+        ximilu: { nama: "Es Ximilu", harga: 12000, modal: 10500, color: '#6366f1' },
+        manggo: { nama: "Es Manggo Sago", harga: 10000, modal: 7500, color: '#10b981' },
+        cincau: { nama: "Es Cincau Aren", harga: 10000, modal: 4500, color: '#f59e0b' },
+        coco: { nama: "Es Coco Melon", harga: 8000, modal: 6000, color: '#ef4444' }
+    };
+
+    let db = JSON.parse(localStorage.getItem('pos_ultra_v3')) || [];
+    let cart = {};
+    let chartInstance = null;
+
+    function init() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('inputDate').value = today;
+        document.getElementById('filterDate').value = today;
+        document.getElementById('filterMonth').value = today.substring(0, 7);
+        renderMenu();
+        renderKasir();
+    }
+
+    function switchTab(target) {
+        document.getElementById('tab-kasir').classList.toggle('hidden', target !== 'kasir');
+        document.getElementById('tab-laporan').classList.toggle('hidden', target !== 'laporan');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        if(target === 'laporan') renderLaporan();
+    }
+
+    function renderMenu() {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = Object.keys(MENU).map(k => `
+            <div class="item-row">
+                <div><b>${MENU[k].nama}</b><br><small>Rp ${MENU[k].harga.toLocaleString()}</small></div>
+                <div class="qty-box">
+                    <button class="ctrl-btn" style="background:#fee2e2; color:#ef4444" onclick="updateCart('${k}', -1)">-</button>
+                    <span id="q_${k}" style="font-weight:700; width:20px; text-align:center">0</span>
+                    <button class="ctrl-btn" style="background:#e0e7ff; color:#6366f1" onclick="updateCart('${k}', 1)">+</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function updateCart(k, d) {
+        cart[k] = (cart[k] || 0) + d;
+        if(cart[k] < 0) cart[k] = 0;
+        document.getElementById(`q_${k}`).innerText = cart[k];
+    }
+
+    function simpanData() {
+        const tgl = document.getElementById('inputDate').value;
+        const jam = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+        let added = false;
+        Object.keys(cart).forEach(k => {
+            if(cart[k] > 0) {
+                db.push({
+                    id: Date.now() + Math.random(), mKey: k, nama: MENU[k].nama,
+                    qty: cart[k], total: cart[k] * MENU[k].harga,
+                    profit: cart[k] * (MENU[k].harga - MENU[k].modal),
+                    tanggal: tgl, jam: jam
+                });
+                added = true;
+            }
+        });
+        if(added) {
+            localStorage.setItem('pos_ultra_v3', JSON.stringify(db));
+            cart = {}; renderMenu(); renderKasir();
+        }
+    }
+
+    function renderKasir() {
+        const f = document.getElementById('filterDate').value;
+        const data = db.filter(i => i.tanggal === f);
+        const tbody = document.getElementById('tableKasir');
+        let o = 0, p = 0;
+        tbody.innerHTML = "";
+        data.forEach(i => {
+            o += i.total; p += i.profit;
+            tbody.innerHTML += `<tr><td>${i.jam}</td><td><b>${i.nama}</b></td><td>${i.qty}</td><td>${i.total.toLocaleString()}</td>
+            <td><button onclick="editItem(${i.id})" style="border:none; background:none; color:var(--success); cursor:pointer;"><i class="fas fa-edit"></i></button></td></tr>`;
+        });
+        document.getElementById('day-omzet').innerText = `Rp ${o.toLocaleString()}`;
+        document.getElementById('day-profit').innerText = `Rp ${p.toLocaleString()}`;
+    }
+
+    function editItem(id) {
+        const idx = db.findIndex(i => i.id === id);
+        const q = prompt("Edit Jumlah:", db[idx].qty);
+        if(q !== null) {
+            const nQ = parseInt(q) || 0;
+            const item = MENU[db[idx].mKey];
+            db[idx].qty = nQ;
+            db[idx].total = nQ * item.harga;
+            db[idx].profit = nQ * (item.harga - item.modal);
+            localStorage.setItem('pos_ultra_v3', JSON.stringify(db));
+            renderKasir();
+        }
+    }
+
+    function renderLaporan() {
+        const m = document.getElementById('filterMonth').value;
+        const data = db.filter(i => i.tanggal.startsWith(m));
+        const grouped = data.reduce((acc, curr) => {
+            acc[curr.tanggal] = acc[curr.tanggal] || { q:0, o:0, p:0 };
+            acc[curr.tanggal].q += curr.qty;
+            acc[curr.tanggal].o += curr.total;
+            acc[curr.tanggal].p += curr.profit;
+            return acc;
+        }, {});
+        
+        const tbody = document.getElementById('tableLaporan');
+        tbody.innerHTML = "";
+        Object.keys(grouped).sort().reverse().forEach(t => {
+            tbody.innerHTML += `<tr><td>${t}</td><td>${grouped[t].q} Cup</td><td>${grouped[t].o.toLocaleString()}</td><td>${grouped[t].p.toLocaleString()}</td></tr>`;
+        });
+
+        // Grafik
+        const chartData = data.reduce((acc, curr) => {
+            acc[curr.nama] = (acc[curr.nama] || 0) + curr.qty;
+            return acc;
+        }, {});
+        updateChart(chartData);
+    }
+
+    function updateChart(dataMap) {
+        const ctx = document.getElementById('donutChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: { 
+                labels: Object.keys(dataMap),
+                datasets: [{ data: Object.values(dataMap), backgroundColor: Object.keys(dataMap).map(n => Object.values(MENU).find(m => m.nama === n).color) }]
+            },
+            options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
