@@ -3,92 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinkStation POS</title>
+    <title>DrinkStation Cloud POS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --accent: #6366f1; --success: #10b981; --info: #0ea5e9; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --text-light: #6b7280; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding: 15px; }
-        .app-shell { max-width: 1200px; margin: 0 auto; }
-        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .app-shell { max-width: 1100px; margin: 0 auto; }
+        
+        /* Navigation */
+        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .nav-tabs { display: flex; background: #e5e7eb; padding: 5px; border-radius: 12px; gap: 5px; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; background: transparent; }
-        .tab-btn.active { background: var(--card); color: var(--accent); }
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-bottom: 4px solid transparent; }
-        .stat-card.blue { border-bottom-color: var(--accent); }
-        .stat-card.green { border-bottom-color: var(--success); }
-        .stat-card.cyan { border-bottom-color: var(--info); }
-        .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 5px; }
-        .content-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; color: var(--text-light); background: transparent; transition: 0.3s; }
+        .tab-btn.active { background: var(--card); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* Stats Card */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-bottom: 4px solid var(--accent); }
+        .stat-val { font-size: 1.4rem; font-weight: 800; margin-top: 5px; }
+
+        /* Grid Layout */
+        .content-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 992px) { .content-grid { grid-template-columns: 380px 1fr; } }
-        .glass-card { background: var(--card); border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 16px; margin-bottom: 10px; }
-        .qty-box { display: flex; align-items: center; gap: 10px; background: white; padding: 4px; border-radius: 10px; border: 1px solid #e5e7eb; }
-        .ctrl-btn { width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+
+        .glass-card { background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+        .qty-box { display: flex; align-items: center; gap: 10px; }
+        .ctrl-btn { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; background: #e5e7eb; color: var(--text); }
+        .ctrl-btn:active { background: #d1d5db; }
+
+        /* Table */
         .table-res { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        th { text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-light); border-bottom: 1px solid #f3f4f6; text-transform: uppercase; }
-        td { padding: 15px 12px; border-bottom: 1px solid #f9fafb; font-size: 0.9rem; }
-        .btn-submit { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 700; cursor: pointer; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; font-size: 0.9rem; }
+        th { text-align: left; padding: 12px; color: var(--text-light); border-bottom: 2px solid #f3f4f6; text-transform: uppercase; font-size: 0.75rem; }
+        td { padding: 12px; border-bottom: 1px solid #f9fafb; }
+
+        .btn-submit { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 700; cursor: pointer; margin-top: 15px; font-size: 1rem; transition: 0.3s; }
+        .btn-submit:hover { background: #4f46e5; }
+        
         .hidden { display: none; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; }
-        .chart-container { width: 100%; max-width: 250px; margin: 0 auto; }
-        .input-label { font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-light); }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; gap: 10px; font-weight: 800; color: var(--accent); }
     </style>
 </head>
 <body>
 
-<div id="loading">Memproses...</div>
+<div id="loading-overlay">
+    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    SINKRONISASI DATA...
+</div>
 
 <div class="app-shell">
     <div class="nav-header">
-        <h1 style="font-weight: 800;"><i class="fas fa-glass-whiskey" style="color:var(--accent)"></i> DRINKSTATION</h1>
+        <h1 style="font-weight: 800;"><i class="fas fa-store" style="color:var(--accent)"></i> DRINKSTATION</h1>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('kasir')">Kasir</button>
-            <button class="tab-btn" onclick="switchTab('laporan')">Laporan</button>
+            <button class="tab-btn active" id="btn-kasir" onclick="switchTab('kasir')">KASIR</button>
+            <button class="tab-btn" id="btn-laporan" onclick="switchTab('laporan')">LAPORAN</button>
         </div>
     </div>
 
     <div id="tab-kasir">
         <div class="stats-row">
-            <div class="stat-card blue">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Terpilih</div>
+            <div class="stat-card" style="border-color: var(--accent);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-light);">OMZET TERPILIH</div>
                 <div class="stat-val" id="day-omzet">Rp 0</div>
             </div>
-            <div class="stat-card green">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Terpilih</div>
+            <div class="stat-card" style="border-color: var(--success);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--success);">PROFIT BERSIH</div>
                 <div class="stat-val" id="day-profit" style="color:var(--success)">Rp 0</div>
             </div>
-            <div class="stat-card cyan">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Gaji (80%)</div>
+            <div class="stat-card" style="border-color: var(--info);">
+                <div style="font-size: 0.75rem; font-weight: 700; color: var(--info);">GAJI (80%)</div>
                 <div class="stat-val" id="day-gaji" style="color:var(--info)">Rp 0</div>
             </div>
         </div>
 
         <div class="content-grid">
             <div class="glass-card">
-                <label class="input-label">TANGGAL TRANSAKSI</label>
-                <input type="date" id="inputDateKasir" onchange="sinkronTanggal(this.value)" style="width:100%; padding:10px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd; font-weight: bold;">
-                
-                <div style="font-weight:700; margin-bottom:10px; font-size: 0.9rem;">MENU PESANAN</div>
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 0.75rem; font-weight: 800; color: var(--text-light);">TANGGAL TRANSAKSI</label>
+                    <input type="date" id="mainDate" onchange="tarikData()" style="width:100%; padding:12px; margin-top:5px; border-radius:10px; border:1px solid #ddd; font-weight: bold; font-size: 1rem;">
+                </div>
                 <div id="menuContainer"></div>
-                <button class="btn-submit" onclick="simpanKeCloud()">Simpan Transaksi</button>
+                <button class="btn-submit" onclick="simpanKeCloud()">SIMPAN TRANSAKSI</button>
             </div>
             
             <div class="glass-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div style="font-weight:700">Riwayat Penjualan</div>
-                    <div style="display:flex; gap:5px; align-items: center;">
-                        <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-light);">FILTER:</span>
-                        <input type="date" id="filterDateKasir" onchange="renderKasir()" style="padding:5px; border-radius:8px; border:1px solid #ddd; font-size:0.8rem;">
-                        <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:6px 10px; border-radius:8px; cursor:pointer;"><i class="fas fa-sync"></i></button>
-                    </div>
+                    <div style="font-weight:800;">RIWAYAT PENJUALAN</div>
+                    <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:8px 12px; border-radius:10px; cursor:pointer;"><i class="fas fa-sync-alt"></i></button>
                 </div>
                 <div class="table-res">
                     <table>
-                        <thead><tr><th>Jam</th><th>Menu</th><th>Qty</th><th>Total</th></tr></thead>
+                        <thead><tr><th>JAM</th><th>MENU</th><th>QTY</th><th>TOTAL</th></tr></thead>
                         <tbody id="tableKasir"></tbody>
                     </table>
                 </div>
@@ -97,20 +104,19 @@
     </div>
 
     <div id="tab-laporan" class="hidden">
-        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+        <div class="content-grid" style="grid-template-columns: 1fr;">
             <div class="glass-card" style="text-align:center;">
-                <div style="font-weight:700; margin-bottom:15px;">Proporsi Penjualan Menu</div>
-                <div class="chart-container"><canvas id="donutChart"></canvas></div>
+                <div style="font-weight:800; margin-bottom:20px;">PERBANDINGAN MENU TERLARIS</div>
+                <div style="max-width: 300px; margin: 0 auto;"><canvas id="donutChart"></canvas></div>
             </div>
-
             <div class="glass-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <div style="font-weight:700">Rekap Bulanan</div>
-                    <input type="month" id="filterMonth" onchange="renderLaporan()" style="padding:8px; border-radius:8px; border:1px solid #ddd;">
+                    <div style="font-weight:800;">REKAP BULANAN</div>
+                    <input type="month" id="monthFilter" onchange="renderLaporan()" style="padding:10px; border-radius:10px; border:1px solid #ddd; font-weight: bold;">
                 </div>
                 <div class="table-res">
                     <table>
-                        <thead><tr><th>Tanggal</th><th>Omzet</th><th>Profit</th><th>Gaji (80%)</th></tr></thead>
+                        <thead><tr><th>TANGGAL</th><th>OMZET</th><th>PROFIT</th><th>GAJI (80%)</th></tr></thead>
                         <tbody id="tableLaporan"></tbody>
                     </table>
                 </div>
@@ -119,8 +125,10 @@
     </div>
 </div>
 
+<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
+
 <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbV-UQDA-mtpFBrTrLJ6wztquHyUFYzkqH7X-Pul15HIkW6pcvJcQPAN8JTALRazLbA/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzdmVd2gQd677zmWncPRlOteh7Xg7JSHbRoEpU-9BwTdF9QKs_eX50sAaqnKmuXnwONWg/exec";
 
     const MENU = {
         ximilu: { nama: "Es Ximilu", harga: 12000, modal: 10500 },
@@ -135,36 +143,20 @@
 
     function init() {
         const today = new Date().toISOString().split('T')[0];
-        document.getElementById('inputDateKasir').value = today;
-        document.getElementById('filterDateKasir').value = today;
-        document.getElementById('filterMonth').value = today.substring(0, 7);
+        document.getElementById('mainDate').value = today;
+        document.getElementById('monthFilter').value = today.substring(0, 7);
         renderMenu();
         tarikData();
-    }
-
-    // Biar kalau ganti tanggal di input, filter riwayat di sebelah juga otomatis ganti
-    function sinkronTanggal(val) {
-        document.getElementById('filterDateKasir').value = val;
-        renderKasir();
-    }
-
-    function switchTab(target) {
-        document.getElementById('tab-kasir').classList.toggle('hidden', target !== 'kasir');
-        document.getElementById('tab-laporan').classList.toggle('hidden', target !== 'laporan');
-        const btns = document.querySelectorAll('.tab-btn');
-        btns[0].classList.toggle('active', target === 'kasir');
-        btns[1].classList.toggle('active', target === 'laporan');
-        if(target === 'laporan') renderLaporan();
     }
 
     function renderMenu() {
         document.getElementById('menuContainer').innerHTML = Object.keys(MENU).map(k => `
             <div class="item-row">
-                <div><b>${MENU[k].nama}</b><br><small>Rp ${MENU[k].harga.toLocaleString()}</small></div>
+                <div><div style="font-weight:700">${MENU[k].nama}</div><div style="font-size:0.8rem; color:var(--text-light)">Rp ${MENU[k].harga.toLocaleString()}</div></div>
                 <div class="qty-box">
-                    <button class="ctrl-btn" style="background:#fee2e2; color:#ef4444" onclick="updateCart('${k}', -1)">-</button>
-                    <span id="q_${k}" style="font-weight:700; width:20px; text-align:center">0</span>
-                    <button class="ctrl-btn" style="background:#e0e7ff; color:#6366f1" onclick="updateCart('${k}', 1)">+</button>
+                    <button class="ctrl-btn" onclick="updateCart('${k}', -1)">-</button>
+                    <span id="q_${k}" style="font-weight:800; min-width:20px; text-align:center">0</span>
+                    <button class="ctrl-btn" onclick="updateCart('${k}', 1)">+</button>
                 </div>
             </div>
         `).join('');
@@ -177,7 +169,7 @@
     }
 
     async function simpanKeCloud() {
-        const tgl = document.getElementById('inputDateKasir').value;
+        const tgl = document.getElementById('mainDate').value;
         const jam = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
         let items = [];
 
@@ -191,57 +183,57 @@
             }
         });
 
-        if(items.length === 0) return alert("Pilih menu dulu!");
+        if(items.length === 0) return alert("Pilih menu pesanan terlebih dahulu!");
 
-        document.getElementById('loading').style.display = 'flex';
+        toggleLoading(true);
         try {
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(items) });
             cart = {}; renderMenu();
             await tarikData();
-            alert("Berhasil disimpan!");
-        } catch (e) { alert("Gagal Simpan"); }
-        document.getElementById('loading').style.display = 'none';
+            alert("Berhasil! Data telah tersimpan di Cloud.");
+        } catch (e) { alert("Terjadi gangguan koneksi."); }
+        toggleLoading(false);
     }
 
     async function tarikData() {
+        toggleLoading(true);
         try {
             const res = await fetch(SCRIPT_URL);
-            cloudData = await res.json();
+            const raw = await res.json();
+            cloudData = raw.map(i => ({...i, tanggal: String(i.tanggal).split('T')[0]}));
             renderKasir();
-        } catch (e) { console.log("Gagal tarik data"); }
+            if(!document.getElementById('tab-laporan').classList.contains('hidden')) renderLaporan();
+        } catch (e) { console.error("Gagal sinkron."); }
+        toggleLoading(false);
     }
 
     function renderKasir() {
-        const tgl = document.getElementById('filterDateKasir').value;
-        const filtered = cloudData.filter(i => i.tanggal.toString() === tgl);
-        let o = 0, p = 0, g = 0;
+        const tglFilter = document.getElementById('mainDate').value;
+        const filtered = cloudData.filter(i => i.tanggal === tglFilter);
+        let o = 0, p = 0;
 
         document.getElementById('tableKasir').innerHTML = filtered.map(i => {
-            o += Number(i.total);
-            p += Number(i.profit);
-            g += (Number(i.profit) * 0.8);
+            o += parseFloat(i.total); p += parseFloat(i.profit);
             return `<tr><td>${i.jam}</td><td><b>${i.nama}</b></td><td>${i.qty}</td><td>${Number(i.total).toLocaleString()}</td></tr>`;
         }).reverse().join('');
 
         document.getElementById('day-omzet').innerText = `Rp ${o.toLocaleString()}`;
         document.getElementById('day-profit').innerText = `Rp ${p.toLocaleString()}`;
-        document.getElementById('day-gaji').innerText = `Rp ${Math.floor(g).toLocaleString()}`;
+        document.getElementById('day-gaji').innerText = `Rp ${Math.floor(p * 0.8).toLocaleString()}`;
     }
 
     function renderLaporan() {
-        const m = document.getElementById('filterMonth').value;
-        const dataBulan = cloudData.filter(i => i.tanggal.toString().startsWith(m));
+        const bln = document.getElementById('monthFilter').value;
+        const filtered = cloudData.filter(i => i.tanggal.startsWith(bln));
         
-        const menuStats = {};
-        dataBulan.forEach(i => {
-            menuStats[i.nama] = (menuStats[i.nama] || 0) + Number(i.qty);
-        });
-        updateChart(menuStats);
+        const stats = {};
+        filtered.forEach(i => stats[i.nama] = (stats[i.nama] || 0) + Number(i.qty));
+        updateChart(stats);
 
-        const grup = dataBulan.reduce((acc, curr) => {
+        const grup = filtered.reduce((acc, curr) => {
             acc[curr.tanggal] = acc[curr.tanggal] || { o:0, p:0 };
-            acc[curr.tanggal].o += Number(curr.total);
-            acc[curr.tanggal].p += Number(curr.profit);
+            acc[curr.tanggal].o += parseFloat(curr.total);
+            acc[curr.tanggal].p += parseFloat(curr.profit);
             return acc;
         }, {});
 
@@ -250,7 +242,7 @@
                 <td>${t}</td>
                 <td>${grup[t].o.toLocaleString()}</td>
                 <td>${grup[t].p.toLocaleString()}</td>
-                <td style="color:var(--info); font-weight:700">Rp ${Math.floor(grup[t].p * 0.8).toLocaleString()}</td>
+                <td style="color:var(--info); font-weight:800">Rp ${Math.floor(grup[t].p * 0.8).toLocaleString()}</td>
             </tr>
         `).join('');
     }
@@ -262,14 +254,21 @@
             type: 'doughnut',
             data: {
                 labels: Object.keys(stats),
-                datasets: [{
-                    data: Object.values(stats),
-                    backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b'],
-                }]
+                datasets: [{ data: Object.values(stats), backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b'] }]
             },
             options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
         });
     }
+
+    function switchTab(t) {
+        document.getElementById('tab-kasir').classList.toggle('hidden', t !== 'kasir');
+        document.getElementById('tab-laporan').classList.toggle('hidden', t !== 'laporan');
+        document.getElementById('btn-kasir').classList.toggle('active', t === 'kasir');
+        document.getElementById('btn-laporan').classList.toggle('active', t === 'laporan');
+        if(t === 'laporan') renderLaporan();
+    }
+
+    function toggleLoading(s) { document.getElementById('loading-overlay').style.display = s ? 'flex' : 'none'; }
 
     window.onload = init;
 </script>
