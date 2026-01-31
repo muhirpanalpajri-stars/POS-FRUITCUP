@@ -1,0 +1,2 @@
+# POS-FRUITCUP
+kasir pribadi
