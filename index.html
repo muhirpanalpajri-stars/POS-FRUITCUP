@@ -3,84 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinkStation Cloud POS</title>
+    <title>DrinkStation POS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --accent: #6366f1; --success: #10b981; --info: #0ea5e9; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --text-light: #6b7280; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding: 15px; }
         .app-shell { max-width: 1200px; margin: 0 auto; }
-        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+
+        .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
         .nav-tabs { display: flex; background: #e5e7eb; padding: 5px; border-radius: 12px; gap: 5px; }
         .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; background: transparent; }
-        .tab-btn.active { background: var(--card); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-bottom: 4px solid var(--accent); }
+        .tab-btn.active { background: var(--card); color: var(--accent); }
+
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-bottom: 4px solid transparent; }
+        .stat-card.blue { border-bottom-color: var(--accent); }
+        .stat-card.green { border-bottom-color: var(--success); }
+        .stat-card.cyan { border-bottom-color: var(--info); }
         .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 5px; }
+
         .content-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
         @media (min-width: 992px) { .content-grid { grid-template-columns: 380px 1fr; } }
+
         .glass-card { background: var(--card); border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); }
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 16px; margin-bottom: 10px; border: 1px solid #f1f5f9; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 16px; margin-bottom: 10px; }
         .qty-box { display: flex; align-items: center; gap: 10px; background: white; padding: 4px; border-radius: 10px; border: 1px solid #e5e7eb; }
-        .ctrl-btn { width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .ctrl-btn { width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
+
         .table-res { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th { text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-light); border-bottom: 1px solid #f3f4f6; text-transform: uppercase; }
         td { padding: 15px 12px; border-bottom: 1px solid #f9fafb; font-size: 0.9rem; }
+
         .btn-submit { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 700; cursor: pointer; margin-top: 15px; }
         .hidden { display: none; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; gap: 10px; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="loading">
-    <div class="spinner"></div>
-    <div style="font-weight: bold; color: var(--accent);">Sinkronisasi Cloud...</div>
-</div>
+<div id="loading">Memproses ke Cloud...</div>
 
 <div class="app-shell">
     <div class="nav-header">
-        <h1 style="font-weight: 800;">DRINK<b>STATION</b></h1>
+        <h1 style="font-weight: 800;"><i class="fas fa-glass-whiskey" style="color:var(--accent)"></i> DRINKSTATION</h1>
         <div class="nav-tabs">
-            <button class="tab-btn active" id="btn-kasir" onclick="switchTab('kasir')">Kasir</button>
-            <button class="tab-btn" id="btn-laporan" onclick="switchTab('laporan')">Laporan</button>
+            <button class="tab-btn active" onclick="switchTab('kasir')">Kasir</button>
+            <button class="tab-btn" onclick="switchTab('laporan')">Laporan</button>
         </div>
     </div>
 
     <div id="tab-kasir">
         <div class="stats-row">
-            <div class="stat-card">
-                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Omzet Hari Ini</div>
+            <div class="stat-card blue">
+                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Hari Ini</div>
                 <div class="stat-val" id="day-omzet">Rp 0</div>
             </div>
-            <div class="stat-card" style="border-color: var(--success);">
-                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Profit Bersih</div>
+            <div class="stat-card green">
+                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Hari Ini</div>
                 <div class="stat-val" id="day-profit" style="color:var(--success)">Rp 0</div>
             </div>
-            <div class="stat-card" style="border-color: var(--info);">
-                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Gaji (80%)</div>
+            <div class="stat-card cyan">
+                <div style="font-size: 0.8rem; color: var(--text-light);">Gaji (80%)</div>
                 <div class="stat-val" id="day-gaji" style="color:var(--info)">Rp 0</div>
             </div>
         </div>
 
         <div class="content-grid">
             <div class="glass-card">
-                <input type="date" id="inputDate" style="width:100%; padding:12px; margin-bottom:15px; border-radius:12px; border:1px solid #e5e7eb; font-weight: bold;">
+                <input type="date" id="inputDate" style="width:100%; padding:10px; margin-bottom:15px; border-radius:10px; border:1px solid #ddd;">
                 <div id="menuContainer"></div>
-                <button class="btn-submit" onclick="simpanKeCloud()">SIMPAN TRANSAKSI</button>
+                <button class="btn-submit" onclick="simpanKeCloud()">Simpan Transaksi</button>
             </div>
             
             <div class="glass-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <div style="font-weight:800;">Riwayat Penjualan</div>
-                    <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:8px 12px; border-radius:10px; cursor:pointer;"><i class="fas fa-sync"></i> Refresh</button>
+                    <div style="font-weight:700">Riwayat Penjualan</div>
+                    <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:5px 10px; border-radius:8px; cursor:pointer;"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div class="table-res">
                     <table>
-                        <thead><tr><th>Jam</th><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
+                        <thead><tr><th>Jam</th><th>Menu</th><th>Qty</th><th>Total</th></tr></thead>
                         <tbody id="tableKasir"></tbody>
                     </table>
                 </div>
@@ -91,8 +95,8 @@
     <div id="tab-laporan" class="hidden">
         <div class="glass-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <div style="font-weight:800;">Rekap Bulanan</div>
-                <input type="month" id="filterMonth" onchange="renderLaporan()" style="padding:10px; border-radius:10px; border:1px solid #ddd;">
+                <div style="font-weight:700">Rekap Bulanan & Gaji</div>
+                <input type="month" id="filterMonth" onchange="renderLaporan()" style="padding:8px; border-radius:8px; border:1px solid #ddd;">
             </div>
             <div class="table-res">
                 <table>
@@ -105,7 +109,7 @@
 </div>
 
 <script>
-    // LINK BARU ANDA SUDAH TERPASANG DI SINI
+    // Link API Google Apps Script Anda
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbV-UQDA-mtpFBrTrLJ6wztquHyUFYzkqH7X-Pul15HIkW6pcvJcQPAN8JTALRazLbA/exec";
 
     const MENU = {
@@ -128,18 +132,19 @@
     function switchTab(target) {
         document.getElementById('tab-kasir').classList.toggle('hidden', target !== 'kasir');
         document.getElementById('tab-laporan').classList.toggle('hidden', target !== 'laporan');
-        document.getElementById('btn-kasir').classList.toggle('active', target === 'kasir');
-        document.getElementById('btn-laporan').classList.toggle('active', target === 'laporan');
+        const btns = document.querySelectorAll('.tab-btn');
+        btns[0].classList.toggle('active', target === 'kasir');
+        btns[1].classList.toggle('active', target === 'laporan');
         if(target === 'laporan') renderLaporan();
     }
 
     function renderMenu() {
         document.getElementById('menuContainer').innerHTML = Object.keys(MENU).map(k => `
             <div class="item-row">
-                <div><div style="font-weight:700">${MENU[k].nama}</div><div style="font-size:0.8rem; color:var(--text-light)">Rp ${MENU[k].harga.toLocaleString()}</div></div>
+                <div><b>${MENU[k].nama}</b><br><small>Rp ${MENU[k].harga.toLocaleString()}</small></div>
                 <div class="qty-box">
                     <button class="ctrl-btn" style="background:#fee2e2; color:#ef4444" onclick="updateCart('${k}', -1)">-</button>
-                    <span id="q_${k}" style="font-weight:800; width:20px; text-align:center">0</span>
+                    <span id="q_${k}" style="font-weight:700; width:20px; text-align:center">0</span>
                     <button class="ctrl-btn" style="background:#e0e7ff; color:#6366f1" onclick="updateCart('${k}', 1)">+</button>
                 </div>
             </div>
@@ -167,15 +172,15 @@
             }
         });
 
-        if(items.length === 0) return alert("Pilih pesanan dulu!");
+        if(items.length === 0) return alert("Pilih menu!");
 
         document.getElementById('loading').style.display = 'flex';
         try {
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(items) });
             cart = {}; renderMenu();
             await tarikData();
-            alert("Transaksi Berhasil!");
-        } catch (e) { alert("Gagal Simpan. Pastikan internet aktif."); }
+            alert("Data tersimpan!");
+        } catch (e) { alert("Gagal koneksi cloud"); }
         document.getElementById('loading').style.display = 'none';
     }
 
@@ -184,7 +189,7 @@
             const res = await fetch(SCRIPT_URL);
             cloudData = await res.json();
             renderKasir();
-        } catch (e) { console.log("Gagal sinkron."); }
+        } catch (e) { console.log("Gagal tarik data"); }
     }
 
     function renderKasir() {
@@ -205,9 +210,8 @@
     }
 
     function renderLaporan() {
-        const month = document.getElementById('filterMonth').value;
-        const dataBulan = cloudData.filter(i => i.tanggal.toString().startsWith(month));
-        
+        const m = document.getElementById('filterMonth').value;
+        const dataBulan = cloudData.filter(i => i.tanggal.toString().startsWith(m));
         const grup = dataBulan.reduce((acc, curr) => {
             acc[curr.tanggal] = acc[curr.tanggal] || { o:0, p:0 };
             acc[curr.tanggal].o += Number(curr.total);
@@ -220,7 +224,7 @@
                 <td>${t}</td>
                 <td>${grup[t].o.toLocaleString()}</td>
                 <td>${grup[t].p.toLocaleString()}</td>
-                <td style="color:var(--info); font-weight:800">Rp ${Math.floor(grup[t].p * 0.8).toLocaleString()}</td>
+                <td style="color:var(--info); font-weight:700">Rp ${Math.floor(grup[t].p * 0.8).toLocaleString()}</td>
             </tr>
         `).join('');
     }
