@@ -3,107 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DrinkStation Ultra POS + Gaji</title>
+    <title>DrinkStation Cloud POS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --accent: #6366f1;
-            --success: #10b981;
-            --info: #0ea5e9;
-            --bg: #f3f4f6;
-            --card: #ffffff;
-            --text: #1f2937;
-            --text-light: #6b7280;
-        }
-
+        :root { --accent: #6366f1; --success: #10b981; --info: #0ea5e9; --bg: #f3f4f6; --card: #ffffff; --text: #1f2937; --text-light: #6b7280; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg); color: var(--text); padding: 15px; }
-
         .app-shell { max-width: 1200px; margin: 0 auto; }
-
         .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
         .nav-tabs { display: flex; background: #e5e7eb; padding: 5px; border-radius: 12px; gap: 5px; }
-        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; background: transparent; font-size: 0.9rem; }
+        .tab-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--text-light); transition: 0.3s; background: transparent; }
         .tab-btn.active { background: var(--card); color: var(--accent); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-
-        /* Stats Row - Sekarang 3 Kolom untuk Omzet, Profit, Gaji */
         .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-bottom: 4px solid transparent; }
-        .stat-card.blue { border-bottom-color: var(--accent); }
-        .stat-card.green { border-bottom-color: var(--success); }
-        .stat-card.cyan { border-bottom-color: var(--info); }
+        .stat-card { background: var(--card); padding: 20px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border-bottom: 4px solid var(--accent); }
         .stat-val { font-size: 1.5rem; font-weight: 800; margin-top: 5px; }
-
-        /* Layout Grid Responsif */
         .content-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
         @media (min-width: 992px) { .content-grid { grid-template-columns: 380px 1fr; } }
-
         .glass-card { background: var(--card); border-radius: 24px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.04); }
-        .card-head { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-
-        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f9fafb; border-radius: 16px; margin-bottom: 10px; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 16px; margin-bottom: 10px; border: 1px solid #f1f5f9; }
         .qty-box { display: flex; align-items: center; gap: 10px; background: white; padding: 4px; border-radius: 10px; border: 1px solid #e5e7eb; }
-        .ctrl-btn { width: 28px; height: 28px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; }
-
+        .ctrl-btn { width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .table-res { overflow-x: auto; width: 100%; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th { text-align: left; padding: 12px; font-size: 0.75rem; color: var(--text-light); border-bottom: 1px solid #f3f4f6; text-transform: uppercase; }
         td { padding: 15px 12px; border-bottom: 1px solid #f9fafb; font-size: 0.9rem; }
-
         .btn-submit { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 700; cursor: pointer; margin-top: 15px; }
-        
-        .report-grid { display: grid; grid-template-columns: 1fr; gap: 25px; }
-        @media (min-width: 992px) { .report-grid { grid-template-columns: 1fr 400px; } }
-
-        input[type="date"], input[type="month"] { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #e5e7eb; margin-bottom: 15px; }
         .hidden { display: none; }
-        .badge-gaji { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; gap: 10px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
+<div id="loading">
+    <div class="spinner"></div>
+    <div style="font-weight: bold; color: var(--accent);">Sinkronisasi Cloud...</div>
+</div>
+
 <div class="app-shell">
     <div class="nav-header">
-        <h1 style="font-weight: 800;"><i class="fas fa-glass-whiskey" style="color:var(--accent)"></i> DRINKSTATION</h1>
+        <h1 style="font-weight: 800;">DRINK<b>STATION</b></h1>
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('kasir')">Kasir</button>
-            <button class="tab-btn" onclick="switchTab('laporan')">Laporan</button>
+            <button class="tab-btn active" id="btn-kasir" onclick="switchTab('kasir')">Kasir</button>
+            <button class="tab-btn" id="btn-laporan" onclick="switchTab('laporan')">Laporan</button>
         </div>
     </div>
 
     <div id="tab-kasir">
         <div class="stats-row">
-            <div class="stat-card blue">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Hari Ini</div>
+            <div class="stat-card">
+                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Omzet Hari Ini</div>
                 <div class="stat-val" id="day-omzet">Rp 0</div>
             </div>
-            <div class="stat-card green">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Hari Ini</div>
+            <div class="stat-card" style="border-color: var(--success);">
+                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Profit Bersih</div>
                 <div class="stat-val" id="day-profit" style="color:var(--success)">Rp 0</div>
             </div>
-            <div class="stat-card cyan">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Estimasi Gaji (80%)</div>
+            <div class="stat-card" style="border-color: var(--info);">
+                <div style="font-size: 0.75rem; color: var(--text-light); font-weight: 700;">Gaji (80%)</div>
                 <div class="stat-val" id="day-gaji" style="color:var(--info)">Rp 0</div>
             </div>
         </div>
 
         <div class="content-grid">
             <div class="glass-card">
-                <div class="card-head">Input Pesanan</div>
-                <input type="date" id="inputDate">
+                <input type="date" id="inputDate" style="width:100%; padding:12px; margin-bottom:15px; border-radius:12px; border:1px solid #e5e7eb; font-weight: bold;">
                 <div id="menuContainer"></div>
-                <button class="btn-submit" onclick="simpanData()">Simpan Transaksi</button>
+                <button class="btn-submit" onclick="simpanKeCloud()">SIMPAN TRANSAKSI</button>
             </div>
             
             <div class="glass-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <div class="card-head" style="margin:0">Riwayat Transaksi</div>
-                    <input type="date" id="filterDate" onchange="renderKasir()" style="width:auto; margin:0">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="font-weight:800;">Riwayat Penjualan</div>
+                    <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:8px 12px; border-radius:10px; cursor:pointer;"><i class="fas fa-sync"></i> Refresh</button>
                 </div>
                 <div class="table-res">
                     <table>
-                        <thead><tr><th>Jam</th><th>Menu</th><th>Qty</th><th>Total</th><th>Aksi</th></tr></thead>
+                        <thead><tr><th>Jam</th><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
                         <tbody id="tableKasir"></tbody>
                     </table>
                 </div>
@@ -112,65 +89,57 @@
     </div>
 
     <div id="tab-laporan" class="hidden">
-        <div class="report-grid">
-            <div class="glass-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                    <div class="card-head" style="margin:0">Rekap Bulanan & Gaji</div>
-                    <input type="month" id="filterMonth" onchange="renderLaporan()" style="width:auto; margin:0">
-                </div>
-                <div class="table-res">
-                    <table>
-                        <thead><tr><th>Tanggal</th><th>Omzet</th><th>Profit</th><th>Gaji (80%)</th></tr></thead>
-                        <tbody id="tableLaporan"></tbody>
-                    </table>
-                </div>
+        <div class="glass-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <div style="font-weight:800;">Rekap Bulanan</div>
+                <input type="month" id="filterMonth" onchange="renderLaporan()" style="padding:10px; border-radius:10px; border:1px solid #ddd;">
             </div>
-
-            <div class="glass-card">
-                <div class="card-head">Proporsi Menu</div>
-                <div style="height:300px; width:100%"><canvas id="donutChart"></canvas></div>
+            <div class="table-res">
+                <table>
+                    <thead><tr><th>Tanggal</th><th>Omzet</th><th>Profit</th><th>Gaji (80%)</th></tr></thead>
+                    <tbody id="tableLaporan"></tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // LINK BARU ANDA SUDAH TERPASANG DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwHbV-UQDA-mtpFBrTrLJ6wztquHyUFYzkqH7X-Pul15HIkW6pcvJcQPAN8JTALRazLbA/exec";
+
     const MENU = {
-        ximilu: { nama: "Es Ximilu", harga: 12000, modal: 10500, color: '#6366f1' },
-        manggo: { nama: "Es Manggo Sago", harga: 10000, modal: 7500, color: '#10b981' },
-        cincau: { nama: "Es Cincau Aren", harga: 10000, modal: 4500, color: '#f59e0b' },
-        coco: { nama: "Es Coco Melon", harga: 8000, modal: 6000, color: '#ef4444' }
+        ximilu: { nama: "Es Ximilu", harga: 12000, modal: 10500 },
+        manggo: { nama: "Es Manggo Sago", harga: 10000, modal: 7500 },
+        cincau: { nama: "Es Cincau Aren", harga: 10000, modal: 4500 },
+        coco: { nama: "Es Coco Melon", harga: 8000, modal: 6000 }
     };
 
-    let db = JSON.parse(localStorage.getItem('pos_ultra_v4')) || [];
+    let cloudData = [];
     let cart = {};
-    let chartInstance = null;
 
     function init() {
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('inputDate').value = today;
-        document.getElementById('filterDate').value = today;
-        document.getElementById('filterMonth').value = today.substring(0, 7);
+        document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('filterMonth').value = new Date().toISOString().substring(0, 7);
         renderMenu();
-        renderKasir();
+        tarikData();
     }
 
     function switchTab(target) {
         document.getElementById('tab-kasir').classList.toggle('hidden', target !== 'kasir');
         document.getElementById('tab-laporan').classList.toggle('hidden', target !== 'laporan');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        event.currentTarget.classList.add('active');
+        document.getElementById('btn-kasir').classList.toggle('active', target === 'kasir');
+        document.getElementById('btn-laporan').classList.toggle('active', target === 'laporan');
         if(target === 'laporan') renderLaporan();
     }
 
     function renderMenu() {
-        const container = document.getElementById('menuContainer');
-        container.innerHTML = Object.keys(MENU).map(k => `
+        document.getElementById('menuContainer').innerHTML = Object.keys(MENU).map(k => `
             <div class="item-row">
-                <div><b>${MENU[k].nama}</b><br><small>Rp ${MENU[k].harga.toLocaleString()}</small></div>
+                <div><div style="font-weight:700">${MENU[k].nama}</div><div style="font-size:0.8rem; color:var(--text-light)">Rp ${MENU[k].harga.toLocaleString()}</div></div>
                 <div class="qty-box">
                     <button class="ctrl-btn" style="background:#fee2e2; color:#ef4444" onclick="updateCart('${k}', -1)">-</button>
-                    <span id="q_${k}" style="font-weight:700; width:20px; text-align:center">0</span>
+                    <span id="q_${k}" style="font-weight:800; width:20px; text-align:center">0</span>
                     <button class="ctrl-btn" style="background:#e0e7ff; color:#6366f1" onclick="updateCart('${k}', 1)">+</button>
                 </div>
             </div>
@@ -183,93 +152,77 @@
         document.getElementById(`q_${k}`).innerText = cart[k];
     }
 
-    function simpanData() {
+    async function simpanKeCloud() {
         const tgl = document.getElementById('inputDate').value;
         const jam = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
-        let added = false;
+        let items = [];
+
         Object.keys(cart).forEach(k => {
             if(cart[k] > 0) {
-                db.push({
-                    id: Date.now() + Math.random(), mKey: k, nama: MENU[k].nama,
+                items.push({
+                    tanggal: tgl, jam: jam, nama: MENU[k].nama,
                     qty: cart[k], total: cart[k] * MENU[k].harga,
-                    profit: cart[k] * (MENU[k].harga - MENU[k].modal),
-                    tanggal: tgl, jam: jam
+                    profit: cart[k] * (MENU[k].harga - MENU[k].modal)
                 });
-                added = true;
             }
         });
-        if(added) {
-            localStorage.setItem('pos_ultra_v4', JSON.stringify(db));
-            cart = {}; renderMenu(); renderKasir();
-            alert("Berhasil disimpan!");
-        }
+
+        if(items.length === 0) return alert("Pilih pesanan dulu!");
+
+        document.getElementById('loading').style.display = 'flex';
+        try {
+            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(items) });
+            cart = {}; renderMenu();
+            await tarikData();
+            alert("Transaksi Berhasil!");
+        } catch (e) { alert("Gagal Simpan. Pastikan internet aktif."); }
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    async function tarikData() {
+        try {
+            const res = await fetch(SCRIPT_URL);
+            cloudData = await res.json();
+            renderKasir();
+        } catch (e) { console.log("Gagal sinkron."); }
     }
 
     function renderKasir() {
-        const f = document.getElementById('filterDate').value;
-        const data = db.filter(i => i.tanggal === f);
-        const tbody = document.getElementById('tableKasir');
-        let o = 0, p = 0;
-        tbody.innerHTML = "";
-        data.forEach(i => {
-            o += i.total; p += i.profit;
-            tbody.innerHTML += `<tr><td>${i.jam}</td><td><b>${i.nama}</b></td><td>${i.qty}</td><td>${i.total.toLocaleString()}</td>
-            <td><button onclick="editItem(${i.id})" style="border:none; background:none; color:var(--accent); cursor:pointer;"><i class="fas fa-edit"></i></button></td></tr>`;
-        });
+        const tgl = document.getElementById('inputDate').value;
+        const hariIni = cloudData.filter(i => i.tanggal.toString().startsWith(tgl));
+        let o = 0, p = 0, g = 0;
+
+        document.getElementById('tableKasir').innerHTML = hariIni.map(i => {
+            o += Number(i.total);
+            p += Number(i.profit);
+            g += (Number(i.profit) * 0.8);
+            return `<tr><td>${i.jam}</td><td><b>${i.nama}</b></td><td>${i.qty}</td><td>${Number(i.total).toLocaleString()}</td></tr>`;
+        }).reverse().join('');
+
         document.getElementById('day-omzet').innerText = `Rp ${o.toLocaleString()}`;
         document.getElementById('day-profit').innerText = `Rp ${p.toLocaleString()}`;
-        document.getElementById('day-gaji').innerText = `Rp ${(p * 0.8).toLocaleString()}`;
-    }
-
-    function editItem(id) {
-        const idx = db.findIndex(i => i.id === id);
-        const q = prompt("Ubah Jumlah:", db[idx].qty);
-        if(q !== null) {
-            const nQ = parseInt(q) || 0;
-            const item = MENU[db[idx].mKey];
-            db[idx].qty = nQ;
-            db[idx].total = nQ * item.harga;
-            db[idx].profit = nQ * (item.harga - item.modal);
-            localStorage.setItem('pos_ultra_v4', JSON.stringify(db));
-            renderKasir();
-        }
+        document.getElementById('day-gaji').innerText = `Rp ${Math.floor(g).toLocaleString()}`;
     }
 
     function renderLaporan() {
-        const m = document.getElementById('filterMonth').value;
-        const data = db.filter(i => i.tanggal.startsWith(m));
-        const grouped = data.reduce((acc, curr) => {
-            acc[curr.tanggal] = acc[curr.tanggal] || { o:0, p:0 };
-            acc[curr.tanggal].o += curr.total;
-            acc[curr.tanggal].p += curr.profit;
-            return acc;
-        }, {});
+        const month = document.getElementById('filterMonth').value;
+        const dataBulan = cloudData.filter(i => i.tanggal.toString().startsWith(month));
         
-        const tbody = document.getElementById('tableLaporan');
-        tbody.innerHTML = "";
-        Object.keys(grouped).sort().reverse().forEach(t => {
-            const gaji = grouped[t].p * 0.8;
-            tbody.innerHTML += `<tr><td>${t}</td><td>${grouped[t].o.toLocaleString()}</td><td>${grouped[t].p.toLocaleString()}</td><td><span class="badge-gaji">Rp ${gaji.toLocaleString()}</span></td></tr>`;
-        });
-
-        const chartData = data.reduce((acc, curr) => {
-            acc[curr.nama] = (acc[curr.nama] || 0) + curr.qty;
+        const grup = dataBulan.reduce((acc, curr) => {
+            acc[curr.tanggal] = acc[curr.tanggal] || { o:0, p:0 };
+            acc[curr.tanggal].o += Number(curr.total);
+            acc[curr.tanggal].p += Number(curr.profit);
             return acc;
         }, {});
-        updateChart(chartData);
-    }
 
-    function updateChart(dataMap) {
-        const ctx = document.getElementById('donutChart').getContext('2d');
-        if(chartInstance) chartInstance.destroy();
-        chartInstance = new Chart(ctx, {
-            type: 'doughnut',
-            data: { 
-                labels: Object.keys(dataMap),
-                datasets: [{ data: Object.values(dataMap), backgroundColor: Object.keys(dataMap).map(n => Object.values(MENU).find(m => m.nama === n).color) }]
-            },
-            options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-        });
+        document.getElementById('tableLaporan').innerHTML = Object.keys(grup).sort().reverse().map(t => `
+            <tr>
+                <td>${t}</td>
+                <td>${grup[t].o.toLocaleString()}</td>
+                <td>${grup[t].p.toLocaleString()}</td>
+                <td style="color:var(--info); font-weight:800">Rp ${Math.floor(grup[t].p * 0.8).toLocaleString()}</td>
+            </tr>
+        `).join('');
     }
 
     window.onload = init;
