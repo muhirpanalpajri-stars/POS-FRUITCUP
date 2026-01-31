@@ -34,7 +34,8 @@
         .btn-submit { width: 100%; padding: 15px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 700; cursor: pointer; margin-top: 15px; }
         .hidden { display: none; }
         #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; font-weight: bold; }
-        .chart-container { width: 100%; max-width: 300px; margin: 20px auto; }
+        .chart-container { width: 100%; max-width: 250px; margin: 0 auto; }
+        .input-label { font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-light); }
     </style>
 </head>
 <body>
@@ -53,11 +54,11 @@
     <div id="tab-kasir">
         <div class="stats-row">
             <div class="stat-card blue">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Filter</div>
+                <div style="font-size: 0.8rem; color: var(--text-light);">Omzet Terpilih</div>
                 <div class="stat-val" id="day-omzet">Rp 0</div>
             </div>
             <div class="stat-card green">
-                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Filter</div>
+                <div style="font-size: 0.8rem; color: var(--text-light);">Profit Terpilih</div>
                 <div class="stat-val" id="day-profit" style="color:var(--success)">Rp 0</div>
             </div>
             <div class="stat-card cyan">
@@ -68,17 +69,21 @@
 
         <div class="content-grid">
             <div class="glass-card">
-                <div style="font-weight:700; margin-bottom:10px;">Input Pesanan</div>
+                <label class="input-label">TANGGAL TRANSAKSI</label>
+                <input type="date" id="inputDateKasir" onchange="sinkronTanggal(this.value)" style="width:100%; padding:10px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd; font-weight: bold;">
+                
+                <div style="font-weight:700; margin-bottom:10px; font-size: 0.9rem;">MENU PESANAN</div>
                 <div id="menuContainer"></div>
                 <button class="btn-submit" onclick="simpanKeCloud()">Simpan Transaksi</button>
             </div>
             
             <div class="glass-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                    <div style="font-weight:700">Riwayat & Filter</div>
-                    <div style="display:flex; gap:5px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <div style="font-weight:700">Riwayat Penjualan</div>
+                    <div style="display:flex; gap:5px; align-items: center;">
+                        <span style="font-size: 0.7rem; font-weight: bold; color: var(--text-light);">FILTER:</span>
                         <input type="date" id="filterDateKasir" onchange="renderKasir()" style="padding:5px; border-radius:8px; border:1px solid #ddd; font-size:0.8rem;">
-                        <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:5px 10px; border-radius:8px; cursor:pointer;"><i class="fas fa-sync"></i></button>
+                        <button onclick="tarikData()" style="background:#e0e7ff; color:var(--accent); border:none; padding:6px 10px; border-radius:8px; cursor:pointer;"><i class="fas fa-sync"></i></button>
                     </div>
                 </div>
                 <div class="table-res">
@@ -94,10 +99,8 @@
     <div id="tab-laporan" class="hidden">
         <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
             <div class="glass-card" style="text-align:center;">
-                <div style="font-weight:700; margin-bottom:10px;">Populeritas Menu (Bulan Ini)</div>
-                <div class="chart-container">
-                    <canvas id="donutChart"></canvas>
-                </div>
+                <div style="font-weight:700; margin-bottom:15px;">Proporsi Penjualan Menu</div>
+                <div class="chart-container"><canvas id="donutChart"></canvas></div>
             </div>
 
             <div class="glass-card">
@@ -132,10 +135,17 @@
 
     function init() {
         const today = new Date().toISOString().split('T')[0];
+        document.getElementById('inputDateKasir').value = today;
         document.getElementById('filterDateKasir').value = today;
         document.getElementById('filterMonth').value = today.substring(0, 7);
         renderMenu();
         tarikData();
+    }
+
+    // Biar kalau ganti tanggal di input, filter riwayat di sebelah juga otomatis ganti
+    function sinkronTanggal(val) {
+        document.getElementById('filterDateKasir').value = val;
+        renderKasir();
     }
 
     function switchTab(target) {
@@ -167,7 +177,7 @@
     }
 
     async function simpanKeCloud() {
-        const tgl = document.getElementById('filterDateKasir').value;
+        const tgl = document.getElementById('inputDateKasir').value;
         const jam = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
         let items = [];
 
@@ -181,14 +191,14 @@
             }
         });
 
-        if(items.length === 0) return alert("Pilih menu!");
+        if(items.length === 0) return alert("Pilih menu dulu!");
 
         document.getElementById('loading').style.display = 'flex';
         try {
             await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(items) });
             cart = {}; renderMenu();
             await tarikData();
-            alert("Data Berhasil Disimpan!");
+            alert("Berhasil disimpan!");
         } catch (e) { alert("Gagal Simpan"); }
         document.getElementById('loading').style.display = 'none';
     }
@@ -222,14 +232,12 @@
         const m = document.getElementById('filterMonth').value;
         const dataBulan = cloudData.filter(i => i.tanggal.toString().startsWith(m));
         
-        // Data untuk Grafik
         const menuStats = {};
         dataBulan.forEach(i => {
             menuStats[i.nama] = (menuStats[i.nama] || 0) + Number(i.qty);
         });
         updateChart(menuStats);
 
-        // Data untuk Tabel
         const grup = dataBulan.reduce((acc, curr) => {
             acc[curr.tanggal] = acc[curr.tanggal] || { o:0, p:0 };
             acc[curr.tanggal].o += Number(curr.total);
@@ -249,25 +257,17 @@
 
     function updateChart(stats) {
         const ctx = document.getElementById('donutChart').getContext('2d');
-        const labels = Object.keys(stats);
-        const values = Object.values(stats);
-
         if(myChart) myChart.destroy();
-
         myChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: labels,
+                labels: Object.keys(stats),
                 datasets: [{
-                    data: values,
+                    data: Object.values(stats),
                     backgroundColor: ['#6366f1', '#10b981', '#0ea5e9', '#f59e0b'],
-                    borderWidth: 2
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
+            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
         });
     }
 
